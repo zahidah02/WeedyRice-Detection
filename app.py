@@ -12,7 +12,7 @@ import helper
 
 # ======================== PAGE CONFIGURATION ========================
 st.set_page_config(
-    page_title="Weedy and Cultivated Rice Detection",
+    page_title="Weedy and Cultivated Rice Classification",
     page_icon="🌾",
     layout="wide",
     initial_sidebar_state="expanded"
@@ -74,7 +74,7 @@ def set_bg_and_style():
 set_bg_and_style()
 
 # ======================== TOP BANNER & HEADER ========================
-st.title("Weedy and Cultivated Rice Detection Using YOLOv8🌾")
+st.title("Weedy and Cultivated Rice Classification Using YOLOv8🌾")
 st.markdown("---")
 
 # ======================== SIDEBAR ========================
