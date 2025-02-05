@@ -115,8 +115,7 @@ if source_radio == settings.IMAGE:
         except Exception as ex:
             st.error("Error occurred while opening the image.")
             st.error(ex)
-
-     with col2:
+    with col2:
         if source_img is None:
             default_detected_image_path = str(settings.DEFAULT_DETECT_IMAGE)
             default_detected_image = PIL.Image.open(
