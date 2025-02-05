@@ -58,24 +58,24 @@ col1, col2 = st.columns(2)
 
 if source_radio == "Image":
     source_img = st.sidebar.file_uploader("Choose an image...", type=("jpg", "jpeg", "png", "bmp", "webp"))
+    uploaded_image = None
 
     with col1:
         if source_img is None:
             default_image_path = str(settings.DEFAULT_IMAGE)
             default_image = Image.open(default_image_path)
             st.image(default_image, caption="Default Image")
-            
-            default_detected_image_path = str(settings.DEFAULT_DETECT_IMAGE)
-            default_detected_image = Image.open(default_detected_image_path)
-            st.image(default_detected_image, caption="Detected Image")
         else:
-            # Ensure compatibility with mobile "Take Photo"
             image_bytes = source_img.read()
             uploaded_image = Image.open(io.BytesIO(image_bytes))
             st.image(uploaded_image, caption="Uploaded Image")
     
     with col2:
-        if source_img and st.sidebar.button("Detect Objects"):
+        if source_img is None:
+            default_detected_image_path = str(settings.DEFAULT_DETECT_IMAGE)
+            default_detected_image = Image.open(default_detected_image_path)
+            st.image(default_detected_image, caption="Detected Image")
+        elif uploaded_image and st.sidebar.button("Detect Objects"):
             res = model.predict(uploaded_image, conf=confidence)
             boxes = res[0].boxes
             res_plotted = res[0].plot()[:, :, ::-1]
