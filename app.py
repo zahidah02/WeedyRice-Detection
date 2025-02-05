@@ -1,7 +1,6 @@
 # Python In-built packages
 from pathlib import Path
-import PIL
-import io
+import PIL 
 import pandas as pd
 
 # External packages
@@ -79,10 +78,10 @@ st.title("Weedy and Cultivated Rice Classification Using YOLOv8🌾")
 st.markdown("---")
 
 # ======================== SIDEBAR ========================
-st.sidebar.header("⚙️ YOLO Configuration")
+# st.sidebar.header("⚙️ YOLO Configuration")
 confidence = float(st.sidebar.slider("Select Confidence", 25, 100, 40)) / 100
 
-# ======================== LOAD MODEL ========================
+# ======================== DEFAULT SETTINGS ========================
 model_path = Path(settings.DETECTION_MODEL)
 try:
     model = helper.load_model(model_path)
@@ -96,37 +95,40 @@ source_radio = st.sidebar.radio("Choose Input Source", ["Image", "Video"])
 
 col1, col2 = st.columns(2)
 
-# ======================== IMAGE HANDLING ========================
+# Image Source
+# Image Source
 if source_radio == settings.IMAGE:
     source_img = st.sidebar.file_uploader(
         "Choose an image...", type=("jpg", "jpeg", "png", 'bmp', 'webp'))
+
+    col1, col2 = st.columns(2)
 
     with col1:
         try:
             if source_img is None:
                 default_image_path = str(settings.DEFAULT_IMAGE)
                 default_image = PIL.Image.open(default_image_path)
-                st.image(default_image, caption="Default Image")
+                st.image(default_image_path, caption="Default Image")
             else:
-                # Convert uploaded image to PIL format (fix for mobile)
-                uploaded_image = PIL.Image.open(io.BytesIO(source_img.read()))
-                st.image(uploaded_image, caption="Uploaded Image")
+                uploaded_image = PIL.Image.open(source_img)
+                st.image(source_img, caption="Uploaded Image")  # Removed className
         except Exception as ex:
-            st.error("Error occurred while processing the image.")
+            st.error("Error occurred while opening the image.")
             st.error(ex)
-
     with col2:
         if source_img is None:
             default_detected_image_path = str(settings.DEFAULT_DETECT_IMAGE)
-            default_detected_image = PIL.Image.open(default_detected_image_path)
-            st.image(default_detected_image, caption='Detected Image')
+            default_detected_image = PIL.Image.open(
+                default_detected_image_path)
+            st.image(default_detected_image_path, caption='Detected Image')
         else:
             if st.sidebar.button('Detect Objects'):
-                res = model.predict(uploaded_image, conf=confidence)
+                res = model.predict(uploaded_image,
+                                    conf=confidence
+                                    )
                 boxes = res[0].boxes
                 res_plotted = res[0].plot()[:, :, ::-1]
-                st.image(res_plotted, caption='Detected Image')
-
+                st.image(res_plotted, caption='Detected Image')  # Removed className
                 try:
                     with st.expander("Detection Results"):
                         for box in boxes:
@@ -134,9 +136,9 @@ if source_radio == settings.IMAGE:
                 except Exception as ex:
                     st.write("No image is uploaded yet!")
 
-# ======================== VIDEO HANDLING ========================
 elif source_radio == settings.VIDEO:
     helper.play_stored_video(confidence, model)
+
 else:
     st.error("Please select a valid source type!")
 
