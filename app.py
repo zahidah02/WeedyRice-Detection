@@ -2,8 +2,9 @@
 from pathlib import Path
 import PIL
 from PIL import Image
-import io
+import numpy as np
 import pandas as pd
+import io
 
 # External packages
 import streamlit as st
@@ -41,14 +42,14 @@ st.markdown("---")
 
 # ======================== SIDEBAR ========================
 st.sidebar.header("Image/Video Input")
-confidence = st.sidebar.slider("Select Confidence", 25, 100, 40) / 100
+confidence = float(st.sidebar.slider("Select Confidence", 25, 100, 40)) / 100
 
 # ======================== DEFAULT SETTINGS ========================
 model_path = Path(settings.DETECTION_MODEL)
 try:
     model = helper.load_model(model_path)
 except Exception as ex:
-    st.error(f"Unable to load model. Check the path: {model_path}")
+    st.error(f"❌ Unable to load model. Check the path: {model_path}")
     st.error(ex)
 
 # ======================== MAIN PAGE LAYOUT ========================
@@ -66,28 +67,36 @@ if source_radio == "Image":
             default_image = Image.open(default_image_path)
             st.image(default_image, caption="Default Image")
         else:
-            image_bytes = source_img.read()
-            uploaded_image = Image.open(io.BytesIO(image_bytes))
-            st.image(uploaded_image, caption="Uploaded Image")
-    
+            try:
+                image_bytes = source_img.read()
+                uploaded_image = Image.open(io.BytesIO(image_bytes)).convert("RGB")  # Convert to RGB
+                uploaded_image = np.array(uploaded_image)[:, :, ::-1]  # Convert RGB to BGR if needed
+                st.image(Image.fromarray(uploaded_image[:, :, ::-1]), caption="Uploaded Image")
+            except Exception as ex:
+                st.error("Error occurred while opening the image.")
+                st.error(ex)
+
     with col2:
         if source_img is None:
             default_detected_image_path = str(settings.DEFAULT_DETECT_IMAGE)
             default_detected_image = Image.open(default_detected_image_path)
             st.image(default_detected_image, caption="Detected Image")
-        elif uploaded_image and st.sidebar.button("Detect Objects"):
-            res = model.predict(uploaded_image, conf=confidence)
-            boxes = res[0].boxes
-            res_plotted = res[0].plot()[:, :, ::-1]
-            st.image(res_plotted, caption="Detected Image")
-            
-            with st.expander("Detection Results"):
-                for box in boxes:
-                    st.write(box.data)
+        elif uploaded_image is not None and st.sidebar.button("Detect Objects"):
+            try:
+                res = model.predict(uploaded_image, conf=confidence)
+                res_plotted = res[0].plot()
+                res_plotted = Image.fromarray(res_plotted)  # Convert to PIL Image
+                st.image(res_plotted, caption="Detected Image")
+                
+                with st.expander("Detection Results"):
+                    for box in res[0].boxes:
+                        st.write(box.data)
+            except Exception as ex:
+                st.error("Error during object detection.")
+                st.error(ex)
 
 elif source_radio == "Video":
     helper.play_stored_video(confidence, model)
-
 else:
     st.error("Please select a valid source type!")
 
