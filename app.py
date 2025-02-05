@@ -35,13 +35,13 @@ def set_bg_and_style():
 
 set_bg_and_style()
 
-# ======================== TOP BANNER & HEADER ========================
-st.title("Weedy and Cultivated Rice Classification Using YOLOv8🌾")
+# ======================== HEADER ========================
+st.title("Weedy and Cultivated Rice Classification Using YOLOv8 🌾")
 st.markdown("---")
 
 # ======================== SIDEBAR ========================
-st.sidebar.header("Image/Video Input")
-input_source = st.sidebar.radio("Choose Input Method", ["Upload Image", "Take Photo"])
+st.sidebar.header("Input Source")
+source_radio = st.sidebar.radio("Choose Input Method", ["Upload Image", "Take Photo"])
 
 confidence = float(st.sidebar.slider("Select Confidence", 25, 100, 40)) / 100
 
@@ -53,24 +53,27 @@ except Exception as ex:
     st.error(f"❌ Unable to load model. Check the path: {model_path}")
     st.error(ex)
 
-# ======================== IMAGE CAPTURE & UPLOAD ========================
+# ======================== IMAGE INPUT ========================
 uploaded_image = None
 
-if input_source == "Upload Image":
+if source_radio == "Upload Image":
     uploaded_image = st.file_uploader("Choose an image...", type=["jpg", "jpeg", "png", "bmp", "webp"])
-elif input_source == "Take Photo":
+elif source_radio == "Take Photo":
     uploaded_image = st.camera_input("Capture an image")
 
 # ======================== IMAGE PROCESSING ========================
 if uploaded_image:
     try:
-        image = PIL.Image.open(uploaded_image)  # Ensure proper processing
+        # Convert image to PIL format
+        image = PIL.Image.open(uploaded_image)
+
+        # Display uploaded image
         st.image(image, caption="Uploaded Image", use_column_width=True)
 
-        # Detection button
+        # Detect button
         if st.button("Detect Objects"):
             res = model.predict(image, conf=confidence)
-            res_plotted = res[0].plot()[:, :, ::-1]  # Convert to correct format
+            res_plotted = res[0].plot()[:, :, ::-1]  # Convert for display
             st.image(res_plotted, caption="Detected Image", use_column_width=True)
 
             # Display detection results
@@ -78,7 +81,7 @@ if uploaded_image:
                 for box in res[0].boxes:
                     st.write(box.data)
     except Exception as ex:
-        st.error("Error processing the image. Try another one.")
+        st.error("❌ Error processing the image. Try another one.")
         st.error(ex)
 
 # ======================== FOOTER ========================
