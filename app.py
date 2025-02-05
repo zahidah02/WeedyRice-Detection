@@ -64,6 +64,10 @@ if source_radio == "Image":
             default_image_path = str(settings.DEFAULT_IMAGE)
             default_image = Image.open(default_image_path)
             st.image(default_image, caption="Default Image")
+            
+            default_detected_image_path = str(settings.DEFAULT_DETECT_IMAGE)
+            default_detected_image = Image.open(default_detected_image_path)
+            st.image(default_detected_image, caption="Detected Image")
         else:
             # Ensure compatibility with mobile "Take Photo"
             image_bytes = source_img.read()
